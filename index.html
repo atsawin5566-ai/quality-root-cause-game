@@ -47,7 +47,7 @@ h1{
 }
 
 .slot{
-    min-height:40px;
+    min-height:35px;
     background:#334155;
     border:2px dashed #64748b;
     border-radius:8px;
@@ -232,7 +232,7 @@ let score=0;
 let selectedItem=null;
 let currentCase=null;
 let timer;
-let timeLeft=180;
+let timeLeft=120;
 
 function shuffle(arr){
 
@@ -249,7 +249,7 @@ function startTimer(){
 
 clearInterval(timer);
 
-timeLeft=180;
+timeLeft=120;
 
 document.getElementById("timer").innerText=timeLeft;
 
