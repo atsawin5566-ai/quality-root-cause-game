@@ -5,10 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>5 Why Root Cause Challenge</title>
 
-https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.jsscript>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
 <style>
-
 body{
 font-family:Arial,sans-serif;
 background:#0f172a;
@@ -63,7 +62,7 @@ opacity:.3;
 }
 
 .slot{
-min-height:40px;
+min-height:35px;
 background:#334155;
 border:2px dashed #64748b;
 border-radius:8px;
@@ -78,6 +77,7 @@ border-radius:8px;
 margin:4px 0;
 font-size:14px;
 cursor:pointer;
+user-select:none;
 }
 
 .selected{
@@ -96,6 +96,11 @@ font-size:16px;
 
 .check{
 background:#16a34a;
+color:white;
+}
+
+.reset{
+background:#dc2626;
 color:white;
 }
 
@@ -134,7 +139,6 @@ transform:scale(1);
 }
 
 }
-
 </style>
 </head>
 
@@ -167,6 +171,10 @@ transform:scale(1);
 
 <button class="check" onclick="checkAnswer()">
 ✅ ตรวจคำตอบ
+</button>
+
+<button class="reset" onclick="resetAnswers()">
+🗑️ ล้างคำตอบ
 </button>
 
 <button class="next" onclick="newCase()">
@@ -249,17 +257,13 @@ let score=0;
 let selectedItem=null;
 let currentCase=null;
 let timer;
-let timeLeft=180;
+let timeLeft=120;
 
 function shuffle(arr){
-
 for(let i=arr.length-1;i>0;i--){
-
 const j=Math.floor(Math.random()*(i+1));
-
 [arr[i],arr[j]]=[arr[j],arr[i]];
 }
-
 }
 
 function updateTimer(){
@@ -291,7 +295,7 @@ function startTimer(){
 
 clearInterval(timer);
 
-timeLeft=180;
+timeLeft=120;
 
 updateTimer();
 
@@ -307,16 +311,11 @@ clearInterval(timer);
 
 document.getElementById("result").innerHTML=
 `
-<p class="wrong">
-⏰ หมดเวลา
-</p>
-
+<p class="wrong">⏰ หมดเวลา</p>
 <hr>
-
 <b>Root Cause:</b><br>
 ${currentCase.rootCause}
 `;
-
 }
 
 },1000);
@@ -331,7 +330,7 @@ currentCase=
 cases[Math.floor(Math.random()*cases.length)];
 
 document.getElementById("caseTitle").innerText=
-"🏭 "+currentCase.title;
+"🏭 " + currentCase.title;
 
 startTimer();
 
@@ -397,15 +396,9 @@ selectedItem.parentElement;
 slot.appendChild(selectedItem);
 
 if(oldParent.classList.contains("slot")){
-
 oldParent.appendChild(exist);
-
 }else{
-
-document
-.getElementById("pool")
-.appendChild(exist);
-
+document.getElementById("pool").appendChild(exist);
 }
 
 }else{
@@ -423,12 +416,37 @@ selectedItem=null;
 
 }
 
+function resetAnswers(){
+
+const pool=document.getElementById("pool");
+
+document
+.querySelectorAll(".slot .item")
+.forEach(item=>{
+
+pool.appendChild(item);
+
+});
+
+selectedItem=null;
+
+document
+.querySelectorAll(".item")
+.forEach(item=>{
+
+item.classList.remove("selected");
+
+});
+
+document.getElementById("result").innerHTML="";
+
+}
+
 function checkAnswer(){
 
 clearInterval(timer);
 
 let correct=0;
-
 let detail="";
 
 document
@@ -462,11 +480,10 @@ if(correct===5){
 
 score+=10;
 
-document.getElementById("score")
-.innerText=score;
+document.getElementById("score").innerText=score;
 
 confetti({
-particleCount:200,
+,
 spread:120,
 origin:{y:0.6}
 });
@@ -479,9 +496,9 @@ document.getElementById("result").innerHTML=
 🎉 PERFECT!
 </h2>
 
-<h1>
+<h2>
 🏆 +10 คะแนน
-</h1>
+</h2>
 
 <hr>
 
