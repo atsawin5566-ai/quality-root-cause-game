@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quality Root Cause Challenge</title>
+
+<style>
+body{
+    font-family:Arial,sans-serif;
+    background:#0f172a;
+    color:white;
+    margin:0;
+    padding:20px;
+}
+
+.wrap{
+    max-width:900px;
+    margin:auto;
+}
+
+h1{
+    text-align:center;
+    color:#facc15;
+}
+
+.card{
+    background:#1e293b;
+    padding:20px;
+    border-radius:15px;
+    margin-top:15px;
+}
+
+.btn{
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    border:none;
+    border-radius:10px;
+    background:#334155;
+    color:white;
+    cursor:pointer;
+    font-size:16px;
+}
+
+.btn:hover{
+    background:#475569;
+}
+
+.correct{
+    color:#4ade80;
+    font-weight:bold;
+}
+
+.wrong{
+    color:#f87171;
+    font-weight:bold;
+}
+
+#next{
+    display:none;
+    background:#16a34a;
+}
+
+.score{
+    font-size:20px;
+    font-weight:bold;
+    color:#facc15;
+}
+
+.rank{
+    font-size:24px;
+    text-align:center;
+    margin-top:15px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+<h1>🎯 Quality Root Cause Challenge</h1>
+
+<div class="card">
+<div class="score">
+คะแนน : <span id="score">0</span>
+</div>
+</div>
+
+<div id="game"></div>
+
+</div>
+
+<script>
+
+const qs=[
+
+{
+t:'ขนาดชิ้นงานเกินสเปค',
+q:'เครื่องจักรปกติ วัตถุดิบปกติ เครื่องมือวัดเกินกำหนด Calibration 30 วัน',
+o:['วัตถุดิบ','พนักงานวัดงาน','เครื่องมือวัด','สภาพอากาศ'],
+a:2,
+e:'✅ Root Cause : เครื่องมือวัดไม่ได้ Calibration'
+},
+
+{
+t:'ลูกค้าได้รับสินค้าติด Label ผิดรุ่น',
+q:'ผลิต 2 รุ่นพร้อมกัน Label ถูกวางรวมกัน และ WI ไม่ระบุการแยกพื้นที่',
+o:['Supplier ส่งผิด','ไม่มีการควบคุมการแยก Label','Printer เสีย','ลูกค้าตรวจผิด'],
+a:1,
+e:'✅ Root Cause : ไม่มีการควบคุมการแยก Label'
+},
+
+{
+t:'พบรอยขีดข่วนบนผลิตภัณฑ์',
+q:'เครื่องจักรปกติ และเปลี่ยนใช้ Tray ของ Supplier ใหม่',
+o:['พนักงานทำงานผิด','Tray ใหม่มีผิวหยาบ','AOI ตรวจผิด','เครื่องจักรเสีย'],
+a:1,
+e:'✅ Root Cause : Tray ใหม่มีผิวหยาบ'
+},
+
+{
+t:'ทองแดงเป็นสนิม',
+q:'พบสนิมก่อนเข้าเครื่อง Stamping และพบว่าทองแดงหมดอายุเกิน 300 วัน',
+o:['ความชื้นในพื้นที่จัดเก็บสูง','ทองแดงหมดอายุการจัดเก็บ','Operator ตรวจสอบไม่ละเอียด','Supplier ขนส่งผิดวิธี'],
+a:1,
+e:'✅ Root Cause : ทองแดงหมดอายุการจัดเก็บ'
+},
+
+{
+t:'Dimension OOS',
+q:'Vernier เลยกำหนด Calibration 45 วัน',
+o:['Material','Measurement System','Operator','Environment'],
+a:1,
+e:'✅ Root Cause : Measurement System ไม่น่าเชื่อถือ'
+},
+
+{
+t:'Dent on Surface',
+q:'พบ Dent บนผิวชิ้นงาน และพบว่ามีการซ้อน WIP Tray สูงเกิน WI กำหนด',
+o:['Material คุณภาพต่ำ','Operator วาง Tray ซ้อนเกินมาตรฐาน','Machine กดชิ้นงานแรงเกินไป','Customer ขนส่งผิดวิธี'],
+a:1,
+e:'✅ Root Cause : วาง Tray ซ้อนเกินมาตรฐาน'
+},
+
+{
+t:'Bent Lead',
+q:'พบ Bent Lead หลัง Packing และพบชั้นวางถูก Forklift กระแทก',
+o:['Machine ผลิตผิดพลาด','Material ไม่ได้มาตรฐาน','การกระแทกระหว่างขนย้าย','AOI ตรวจสอบผิด'],
+a:2,
+e:'✅ Root Cause : การกระแทกระหว่างขนย้าย'
+},
+
+{
+t:'Foreign Material',
+q:'พบฝุ่นติดในชิ้นงาน และไม่ได้ทำ Cleaning ตาม Schedule',
+o:['Supplier ส่ง Material สกปรก','Operator ตรวจไม่พบ','ไม่ได้ทำความสะอาดพื้นที่ตามกำหนด','Machine เสีย'],
+a:2,
+e:'✅ Root Cause : ไม่ได้ทำความสะอาดตามแผน'
+}
+
+];
+
+function shuffle(array){
+    for(let i=array.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [array[i],array[j]]=[array[j],array[i]];
+    }
+}
+
+shuffle(qs);
+
+let current=0;
+let score=0;
+
+function showQuestion(){
+
+    if(current>=qs.length){
+
+        let rank="📘 Junior Inspector";
+
+        if(score>=70){
+            rank="🏆 Root Cause Master";
+        }else if(score>=50){
+            rank="🕵️ Quality Detective";
+        }else if(score>=30){
+            rank="👨‍🏭 Quality Engineer";
+        }
+
+        document.getElementById("game").innerHTML=
+        `
+        <div class="card">
+            <h2>🎉 จบเกม</h2>
+            <h3>คะแนน ${score}/${qs.length*10}</h3>
+            <div class="rank">${rank}</div>
+            <br>
+            <button class="btn" onclick="location.reload()">
+                🔄 เล่นใหม่
+            </button>
+        </div>
+        `;
+        return;
+    }
+
+    let q=qs[current];
+
+    let options=q.o.map((text,index)=>({
+        text:text,
+        correct:index===q.a
+    }));
+
+    shuffle(options);
+
+    let html=`
+    <div class="card">
+        <h2>${q.t}</h2>
+        <p>${q.q}</p>
+    `;
+
+    options.forEach(opt=>{
+        html+=`
+        <button class="btn option"
+        onclick="answer(${opt.correct})">
+        ${opt.text}
+        </button>
+        `;
+    });
+
+    html+=`
+    <div id="result"></div>
+
+    <button id="next"
+    class="btn"
+    onclick="nextQuestion()">
+    ➡️ ข้อถัดไป
+    </button>
+
+    </div>
+    `;
+
+    document.getElementById("game").innerHTML=html;
+}
+
+function answer(correct){
+
+    const r=document.getElementById("result");
+
+    if(correct){
+
+        score+=10;
+
+        r.innerHTML=
+        `<p class="correct">✅ ถูกต้อง</p>`;
+
+    }else{
+
+        r.innerHTML=
+        `<p class="wrong">❌ ไม่ถูกต้อง</p>`;
+
+    }
+
+    document.getElementById("score").textContent=score;
+
+    document.querySelectorAll(".option").forEach(btn=>{
+        btn.disabled=true;
+    });
+
+    document.getElementById("next").style.display="block";
+}
+
+function nextQuestion(){
+    current++;
+    showQuestion();
+}
+
+showQuestion();
+
+</script>
+
+</body>
+</html>
