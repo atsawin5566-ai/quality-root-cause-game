@@ -8,7 +8,6 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
 <style>
-
 body{
     font-family:Arial,sans-serif;
     background:#0f172a;
@@ -35,31 +34,31 @@ h1{
 
 .score{
     font-size:18px;
-    color:#facc15;
     font-weight:bold;
-    margin-bottom:10px;
+    color:#facc15;
 }
 
 .timer{
     font-size:24px;
-    color:#4ade80;
     font-weight:bold;
+    color:#4ade80;
+    margin-top:10px;
 }
 
 .slot{
-    min-height:35px;
+    min-height:40px;
     background:#334155;
     border:2px dashed #64748b;
     border-radius:8px;
     padding:5px;
-    margin:5px 0;
+    margin:8px 0;
 }
 
 .item{
     background:#2563eb;
     padding:12px;
-    border-radius:10px;
-    margin:8px 0;
+    border-radius:8px;
+    margin:6px 0;
     cursor:pointer;
 }
 
@@ -79,6 +78,11 @@ button{
 
 .check{
     background:#16a34a;
+    color:white;
+}
+
+.reset{
+    background:#dc2626;
     color:white;
 }
 
@@ -102,21 +106,17 @@ button{
 }
 
 @keyframes pop{
-
 0%{
 transform:scale(.5);
 opacity:0;
 }
-
 50%{
 transform:scale(1.2);
 }
-
 100%{
 transform:scale(1);
 opacity:1;
 }
-
 }
 </style>
 </head>
@@ -135,7 +135,7 @@ opacity:1;
 </div>
 
 <div class="timer">
-⏱️ <span id="timer">30</span> วินาที
+⏱️ <span id="timer">120</span> วินาที
 </div>
 
 <hr>
@@ -152,6 +152,10 @@ opacity:1;
 ✅ ตรวจคำตอบ
 </button>
 
+<button class="reset" onclick="clearAnswers()">
+🗑 ล้างคำตอบ
+</button>
+
 <button class="next" onclick="newCase()">
 🔄 สุ่มโจทย์ใหม่
 </button>
@@ -159,7 +163,6 @@ opacity:1;
 <div id="result"></div>
 
 </div>
-
 </div>
 
 <script>
@@ -229,20 +232,18 @@ whys:[
 ];
 
 let score=0;
+let totalPlayed=0;
 let selectedItem=null;
 let currentCase=null;
 let timer;
 let timeLeft=120;
+let currentIndex=-1;
 
 function shuffle(arr){
-
 for(let i=arr.length-1;i>0;i--){
-
 const j=Math.floor(Math.random()*(i+1));
-
 [arr[i],arr[j]]=[arr[j],arr[i]];
 }
-
 }
 
 function startTimer(){
@@ -251,47 +252,80 @@ clearInterval(timer);
 
 timeLeft=120;
 
-document.getElementById("timer").innerText=timeLeft;
+const timerEl=document.getElementById("timer");
+
+timerEl.innerText=timeLeft;
 
 timer=setInterval(()=>{
 
 timeLeft--;
 
-document.getElementById("timer").innerText=timeLeft;
+timerEl.innerText=timeLeft;
+
+if(timeLeft<=30){
+timerEl.style.color="#ef4444";
+}
+else if(timeLeft<=60){
+timerEl.style.color="#facc15";
+}
+else{
+timerEl.style.color="#4ade80";
+}
 
 if(timeLeft<=0){
 
 clearInterval(timer);
 
+document.querySelector(".check").disabled=true;
+document.querySelector(".next").disabled=true;
+document.querySelector(".reset").disabled=true;
+
 document.getElementById("result").innerHTML=
 `
-<p class="wrong">
+<div class="success">
+
+<h2 class="wrong">
 ⏰ หมดเวลา
-</p>
+</h2>
 
 <hr>
 
-<b>Root Cause:</b><br>
-${currentCase.rootCause}
+<h2>🏆 สรุปผลการแข่งขัน</h2>
+
+<p>คะแนนรวม : <b>${score}</b></p>
+
+<p>จำนวนเคสที่เล่น : <b>${totalPlayed}</b></p>
+
+<p>
+Root Cause ล่าสุด :
+<br><br>
+<b>${currentCase.rootCause}</b>
+</p>
+
+</div>
 `;
 
 }
 
 },1000);
-
 }
 
 function newCase(){
 
 document.getElementById("result").innerHTML="";
 
-currentCase=
-cases[Math.floor(Math.random()*cases.length)];
+let newIndex;
+
+do{
+newIndex=Math.floor(Math.random()*cases.length);
+}
+while(newIndex===currentIndex);
+
+currentIndex=newIndex;
+currentCase=cases[newIndex];
 
 document.getElementById("caseTitle").innerHTML=
 "🏭 "+currentCase.title;
-
-startTimer();
 
 const slots=document.getElementById("slots");
 const pool=document.getElementById("pool");
@@ -320,7 +354,6 @@ shuffled.forEach(text=>{
 let div=document.createElement("div");
 
 div.className="item";
-
 div.innerText=text;
 
 div.onclick=function(){
@@ -332,7 +365,6 @@ document
 selectedItem=div;
 
 div.classList.add("selected");
-
 };
 
 pool.appendChild(div);
@@ -345,20 +377,34 @@ document
 
 slot.onclick=function(){
 
-if(selectedItem){
+if(!selectedItem) return;
+
+const exist=slot.querySelector(".item");
+
+if(exist){
+pool.appendChild(exist);
+}
 
 slot.innerHTML="";
-
 slot.appendChild(selectedItem);
 
 selectedItem.classList.remove("selected");
-
 selectedItem=null;
-
-}
 
 };
 
+});
+
+startTimer();
+}
+
+function clearAnswers(){
+
+const pool=document.getElementById("pool");
+
+document.querySelectorAll(".slot .item")
+.forEach(item=>{
+pool.appendChild(item);
 });
 
 }
@@ -366,6 +412,8 @@ selectedItem=null;
 function checkAnswer(){
 
 clearInterval(timer);
+
+totalPlayed++;
 
 let correct=0;
 
@@ -377,18 +425,16 @@ let item=slot.querySelector(".item");
 
 if(item &&
 item.innerText===currentCase.whys[index]){
-
 correct++;
-
 }
 
 });
 
-if(correct===5){
-
-score+=10;
+score += correct*2;
 
 document.getElementById("score").innerText=score;
+
+if(correct===5){
 
 confetti({
 particleCount:200,
@@ -410,12 +456,11 @@ document.getElementById("result").innerHTML=
 
 <hr>
 
-<b>Root Cause:</b><br>
+<b>Root Cause:</b><br><br>
 ${currentCase.rootCause}
 
 </div>
 `;
-
 }
 else{
 
@@ -425,9 +470,13 @@ document.getElementById("result").innerHTML=
 ✅ ถูก ${correct}/5
 </p>
 
+<p>
+ได้รับ ${correct*2} คะแนน
+</p>
+
 <hr>
 
-<b>Root Cause:</b><br>
+<b>Root Cause:</b><br><br>
 ${currentCase.rootCause}
 `;
 }
@@ -440,3 +489,4 @@ newCase();
 
 </body>
 </html>
+
