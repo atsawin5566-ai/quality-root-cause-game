@@ -8,119 +8,97 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
 
 <style>
+
 body{
-font-family:Arial,sans-serif;
-background:#0f172a;
-color:white;
-margin:0;
-padding:20px;
+    font-family:Arial,sans-serif;
+    background:#0f172a;
+    color:white;
+    margin:0;
+    padding:20px;
 }
 
 .container{
-max-width:900px;
-margin:auto;
+    max-width:900px;
+    margin:auto;
 }
 
 .card{
-background:#1e293b;
-padding:20px;
-border-radius:15px;
+    background:#1e293b;
+    padding:20px;
+    border-radius:15px;
 }
 
 h1{
-text-align:center;
-color:#facc15;
+    text-align:center;
+    color:#facc15;
 }
 
 .score{
-font-size:20px;
-font-weight:bold;
-color:#facc15;
-margin-bottom:10px;
+    font-size:18px;
+    color:#facc15;
+    font-weight:bold;
+    margin-bottom:10px;
 }
 
 .timer{
-font-size:28px;
-font-weight:bold;
-color:#4ade80;
-margin-bottom:15px;
-}
-
-.warning{
-color:#facc15 !important;
-}
-
-.danger{
-color:#ef4444 !important;
-animation:blink 1s infinite;
-}
-
-@keyframes blink{
-50%{
-opacity:.3;
-}
+    font-size:24px;
+    color:#4ade80;
+    font-weight:bold;
 }
 
 .slot{
-min-height:35px;
-background:#334155;
-border:2px dashed #64748b;
-border-radius:8px;
-padding:5px;
-margin:5px 0;
+    min-height:40px;
+    background:#334155;
+    border:2px dashed #64748b;
+    border-radius:8px;
+    padding:5px;
+    margin:5px 0;
 }
 
 .item{
-background:#2563eb;
-padding:8px;
-border-radius:8px;
-margin:4px 0;
-font-size:14px;
-cursor:pointer;
-user-select:none;
+    background:#2563eb;
+    padding:12px;
+    border-radius:10px;
+    margin:8px 0;
+    cursor:pointer;
 }
 
 .selected{
-outline:3px solid #facc15;
+    outline:3px solid yellow;
 }
 
 button{
-width:100%;
-padding:12px;
-margin-top:10px;
-border:none;
-border-radius:10px;
-cursor:pointer;
-font-size:16px;
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    margin-top:10px;
+    cursor:pointer;
+    font-size:16px;
 }
 
 .check{
-background:#16a34a;
-color:white;
-}
-
-.reset{
-background:#dc2626;
-color:white;
+    background:#16a34a;
+    color:white;
 }
 
 .next{
-background:#2563eb;
-color:white;
+    background:#2563eb;
+    color:white;
 }
 
 .correct{
-color:#4ade80;
-font-weight:bold;
+    color:#4ade80;
+    font-weight:bold;
 }
 
 .wrong{
-color:#f87171;
-font-weight:bold;
+    color:#f87171;
+    font-weight:bold;
 }
 
 .success{
-animation:pop .8s ease;
+    animation:pop .8s ease;
 }
 
 @keyframes pop{
@@ -136,6 +114,7 @@ transform:scale(1.2);
 
 100%{
 transform:scale(1);
+opacity:1;
 }
 
 }
@@ -156,7 +135,7 @@ transform:scale(1);
 </div>
 
 <div class="timer">
-⏱️ <span id="timer">3:00</span>
+⏱️ <span id="timer">30</span> วินาที
 </div>
 
 <hr>
@@ -165,20 +144,20 @@ transform:scale(1);
 
 <div id="slots"></div>
 
-<h3>📌 แตะ Why ด้านล่าง แล้วแตะช่อง Why ที่ต้องการ</h3>
+<h3>เลือก Why แล้วแตะช่องวาง</h3>
 
 <div id="pool"></div>
 
 <button class="check" onclick="checkAnswer()">
 ✅ ตรวจคำตอบ
 </button>
-
-<button class="reset" onclick="resetAnswers()">
+  
+<button onclick="resetAnswers()">
 🗑️ ล้างคำตอบ
 </button>
-
+  
 <button class="next" onclick="newCase()">
-🔄 โจทย์ใหม่
+🔄 สุ่มโจทย์ใหม่
 </button>
 
 <div id="result"></div>
@@ -241,13 +220,13 @@ whys:[
 
 {
 title:"Dent on Surface",
-rootCause:"วาง Tray ซ้อนเกินมาตรฐาน",
+rootCause:"ซ้อน Tray เกินมาตรฐาน",
 whys:[
 "เกิด Dent บนผิวชิ้นงาน",
 "ชิ้นงานถูกกดทับ",
 "ซ้อน Tray สูงเกินกำหนด",
-"Operator ไม่ปฏิบัติตาม WI",
-"ไม่มีการ Audit การจัดเก็บ WIP"
+"ไม่ปฏิบัติตาม WI",
+"ไม่มีการ Audit"
 ]
 }
 
@@ -257,36 +236,15 @@ let score=0;
 let selectedItem=null;
 let currentCase=null;
 let timer;
-let timeLeft=120;
+let timeLeft=180;
 
 function shuffle(arr){
+
 for(let i=arr.length-1;i>0;i--){
+
 const j=Math.floor(Math.random()*(i+1));
+
 [arr[i],arr[j]]=[arr[j],arr[i]];
-}
-}
-
-function updateTimer(){
-
-const timerObj=document.getElementById("timer");
-
-const m=Math.floor(timeLeft/60);
-const s=timeLeft%60;
-
-timerObj.innerText=
-m + ":" + String(s).padStart(2,"0");
-
-timerObj.classList.remove(
-"warning",
-"danger"
-);
-
-if(timeLeft<=60){
-timerObj.classList.add("warning");
-}
-
-if(timeLeft<=30){
-timerObj.classList.add("danger");
 }
 
 }
@@ -295,15 +253,15 @@ function startTimer(){
 
 clearInterval(timer);
 
-timeLeft=120;
+timeLeft=180;
 
-updateTimer();
+document.getElementById("timer").innerText=timeLeft;
 
 timer=setInterval(()=>{
 
 timeLeft--;
 
-updateTimer();
+document.getElementById("timer").innerText=timeLeft;
 
 if(timeLeft<=0){
 
@@ -311,11 +269,16 @@ clearInterval(timer);
 
 document.getElementById("result").innerHTML=
 `
-<p class="wrong">⏰ หมดเวลา</p>
+<p class="wrong">
+⏰ หมดเวลา
+</p>
+
 <hr>
+
 <b>Root Cause:</b><br>
 ${currentCase.rootCause}
 `;
+
 }
 
 },1000);
@@ -329,8 +292,8 @@ document.getElementById("result").innerHTML="";
 currentCase=
 cases[Math.floor(Math.random()*cases.length)];
 
-document.getElementById("caseTitle").innerText=
-"🏭 " + currentCase.title;
+document.getElementById("caseTitle").innerHTML=
+"🏭 "+currentCase.title;
 
 startTimer();
 
@@ -342,7 +305,8 @@ pool.innerHTML="";
 
 for(let i=0;i<5;i++){
 
-slots.innerHTML+=`
+slots.innerHTML+=
+`
 <div>
 <b>Why ${i+1}</b>
 <div class="slot"></div>
@@ -360,6 +324,7 @@ shuffled.forEach(text=>{
 let div=document.createElement("div");
 
 div.className="item";
+
 div.innerText=text;
 
 div.onclick=function(){
@@ -384,61 +349,21 @@ document
 
 slot.onclick=function(){
 
-if(!selectedItem) return;
+if(selectedItem){
 
-const exist=slot.querySelector(".item");
-
-if(exist){
-
-const oldParent=
-selectedItem.parentElement;
+slot.innerHTML="";
 
 slot.appendChild(selectedItem);
-
-if(oldParent.classList.contains("slot")){
-oldParent.appendChild(exist);
-}else{
-document.getElementById("pool").appendChild(exist);
-}
-
-}else{
-
-slot.appendChild(selectedItem);
-
-}
 
 selectedItem.classList.remove("selected");
+
 selectedItem=null;
+
+}
 
 };
 
 });
-
-}
-
-function resetAnswers(){
-
-const pool=document.getElementById("pool");
-
-document
-.querySelectorAll(".slot .item")
-.forEach(item=>{
-
-pool.appendChild(item);
-
-});
-
-selectedItem=null;
-
-document
-.querySelectorAll(".item")
-.forEach(item=>{
-
-item.classList.remove("selected");
-
-});
-
-document.getElementById("result").innerHTML="";
 
 }
 
@@ -447,7 +372,6 @@ function checkAnswer(){
 clearInterval(timer);
 
 let correct=0;
-let detail="";
 
 document
 .querySelectorAll(".slot")
@@ -460,18 +384,6 @@ item.innerText===currentCase.whys[index]){
 
 correct++;
 
-detail+=`
-✅ Why ${index+1}<br>
-${currentCase.whys[index]}<br><br>
-`;
-
-}else{
-
-detail+=`
-❌ Why ${index+1}<br>
-${currentCase.whys[index]}<br><br>
-`;
-
 }
 
 });
@@ -483,7 +395,7 @@ score+=10;
 document.getElementById("score").innerText=score;
 
 confetti({
-,
+particleCount:200,
 spread:120,
 origin:{y:0.6}
 });
@@ -496,37 +408,30 @@ document.getElementById("result").innerHTML=
 🎉 PERFECT!
 </h2>
 
-<h2>
+<h1>
 🏆 +10 คะแนน
-</h2>
+</h1>
 
 <hr>
 
-${detail}
-
-<hr>
-
-<b>Root Cause</b><br>
+<b>Root Cause:</b><br>
 ${currentCase.rootCause}
 
 </div>
 `;
 
-}else{
+}
+else{
 
 document.getElementById("result").innerHTML=
 `
-<h3 class="wrong">
+<p class="wrong">
 ✅ ถูก ${correct}/5
-</h3>
+</p>
 
 <hr>
 
-${detail}
-
-<hr>
-
-<b>Root Cause</b><br>
+<b>Root Cause:</b><br>
 ${currentCase.rootCause}
 `;
 }
