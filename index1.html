@@ -2,10 +2,13 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>5 Why Root Cause Challenge</title>
 
+https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.jsscript>
+
 <style>
+
 body{
 font-family:Arial,sans-serif;
 background:#0f172a;
@@ -23,7 +26,6 @@ margin:auto;
 background:#1e293b;
 padding:20px;
 border-radius:15px;
-margin-top:15px;
 }
 
 h1{
@@ -31,21 +33,55 @@ text-align:center;
 color:#facc15;
 }
 
+.score{
+font-size:20px;
+font-weight:bold;
+color:#facc15;
+margin-bottom:10px;
+}
+
+.timer{
+font-size:28px;
+font-weight:bold;
+color:#4ade80;
+margin-bottom:15px;
+}
+
+.warning{
+color:#facc15 !important;
+}
+
+.danger{
+color:#ef4444 !important;
+animation:blink 1s infinite;
+}
+
+@keyframes blink{
+50%{
+opacity:.3;
+}
+}
+
 .slot{
-min-height:60px;
+min-height:45px;
 background:#334155;
 border:2px dashed #64748b;
 border-radius:10px;
-padding:10px;
-margin:8px 0;
+padding:8px;
+margin:5px 0;
 }
 
 .item{
 background:#2563eb;
-padding:12px;
-margin:8px 0;
-border-radius:10px;
+padding:8px;
+border-radius:8px;
+margin:4px 0;
+font-size:14px;
 cursor:pointer;
+}
+
+.selected{
+outline:3px solid #facc15;
 }
 
 button{
@@ -54,14 +90,18 @@ padding:12px;
 margin-top:10px;
 border:none;
 border-radius:10px;
-background:#16a34a;
-color:white;
-font-size:16px;
 cursor:pointer;
+font-size:16px;
 }
 
-button:hover{
-background:#15803d;
+.check{
+background:#16a34a;
+color:white;
+}
+
+.next{
+background:#2563eb;
+color:white;
 }
 
 .correct{
@@ -74,15 +114,27 @@ color:#f87171;
 font-weight:bold;
 }
 
-.score{
-font-size:20px;
-color:#facc15;
-font-weight:bold;
+.success{
+animation:pop .8s ease;
 }
 
-.selected{
-outline:3px solid yellow;
+@keyframes pop{
+
+0%{
+transform:scale(.5);
+opacity:0;
 }
+
+50%{
+transform:scale(1.2);
+}
+
+100%{
+transform:scale(1);
+}
+
+}
+
 </style>
 </head>
 
@@ -95,7 +147,12 @@ outline:3px solid yellow;
 <div class="card">
 
 <div class="score">
-คะแนนรวม : <span id="score">0</span>
+🏆 คะแนนรวม :
+<span id="score">0</span>
+</div>
+
+<div class="timer">
+⏱️ <span id="timer">3:00</span>
 </div>
 
 <hr>
@@ -104,16 +161,16 @@ outline:3px solid yellow;
 
 <div id="slots"></div>
 
-<h3>ลาก/เลือก Why ด้านล่าง</h3>
+<h3>📌 แตะ Why ด้านล่าง แล้วแตะช่อง Why ที่ต้องการ</h3>
 
 <div id="pool"></div>
 
-<button onclick="checkAnswer()">
+<button class="check" onclick="checkAnswer()">
 ✅ ตรวจคำตอบ
 </button>
 
-<button onclick="newCase()">
-🔄 สุ่มโจทย์ใหม่
+<button class="next" onclick="newCase()">
+🔄 โจทย์ใหม่
 </button>
 
 <div id="result"></div>
@@ -124,7 +181,7 @@ outline:3px solid yellow;
 
 <script>
 
-const cases = [
+const cases=[
 
 {
 title:"Peeling Defect",
@@ -163,18 +220,6 @@ whys:[
 },
 
 {
-title:"Dent on Surface",
-rootCause:"วาง Tray ซ้อนเกินมาตรฐาน",
-whys:[
-"เกิด Dent บนผิวชิ้นงาน",
-"ชิ้นงานถูกกดทับ",
-"ซ้อน WIP Tray สูงเกินกำหนด",
-"Operator ไม่ปฏิบัติตาม WI",
-"ไม่มีการ Audit การจัดเก็บ WIP"
-]
-},
-
-{
 title:"Dimension OOS",
 rootCause:"เครื่องมือวัดไม่ได้ Calibration",
 whys:[
@@ -184,30 +229,111 @@ whys:[
 "เลยกำหนด Calibration",
 "ไม่มีระบบติดตาม Calibration"
 ]
+},
+
+{
+title:"Dent on Surface",
+rootCause:"วาง Tray ซ้อนเกินมาตรฐาน",
+whys:[
+"เกิด Dent บนผิวชิ้นงาน",
+"ชิ้นงานถูกกดทับ",
+"ซ้อน Tray สูงเกินกำหนด",
+"Operator ไม่ปฏิบัติตาม WI",
+"ไม่มีการ Audit การจัดเก็บ WIP"
+]
 }
 
 ];
 
-function shuffle(array){
-for(let i=array.length-1;i>0;i--){
-const j=Math.floor(Math.random()*(i+1));
-[array[i],array[j]]=[array[j],array[i]];
-}
-}
-
 let score=0;
 let selectedItem=null;
 let currentCase=null;
+let timer;
+let timeLeft=180;
+
+function shuffle(arr){
+
+for(let i=arr.length-1;i>0;i--){
+
+const j=Math.floor(Math.random()*(i+1));
+
+[arr[i],arr[j]]=[arr[j],arr[i]];
+}
+
+}
+
+function updateTimer(){
+
+const timerObj=document.getElementById("timer");
+
+const m=Math.floor(timeLeft/60);
+const s=timeLeft%60;
+
+timerObj.innerText=
+m + ":" + String(s).padStart(2,"0");
+
+timerObj.classList.remove(
+"warning",
+"danger"
+);
+
+if(timeLeft<=60){
+timerObj.classList.add("warning");
+}
+
+if(timeLeft<=30){
+timerObj.classList.add("danger");
+}
+
+}
+
+function startTimer(){
+
+clearInterval(timer);
+
+timeLeft=180;
+
+updateTimer();
+
+timer=setInterval(()=>{
+
+timeLeft--;
+
+updateTimer();
+
+if(timeLeft<=0){
+
+clearInterval(timer);
+
+document.getElementById("result").innerHTML=
+`
+<p class="wrong">
+⏰ หมดเวลา
+</p>
+
+<hr>
+
+<b>Root Cause:</b><br>
+${currentCase.rootCause}
+`;
+
+}
+
+},1000);
+
+}
 
 function newCase(){
 
 document.getElementById("result").innerHTML="";
 
-currentCase =
+currentCase=
 cases[Math.floor(Math.random()*cases.length)];
 
-document.getElementById("caseTitle").innerHTML =
-"🏭 Case : " + currentCase.title;
+document.getElementById("caseTitle").innerText=
+"🏭 "+currentCase.title;
+
+startTimer();
 
 const slots=document.getElementById("slots");
 const pool=document.getElementById("pool");
@@ -217,8 +343,7 @@ pool.innerHTML="";
 
 for(let i=0;i<5;i++){
 
-slots.innerHTML +=
-`
+slots.innerHTML+=`
 <div>
 <b>Why ${i+1}</b>
 <div class="slot"></div>
@@ -236,7 +361,6 @@ shuffled.forEach(text=>{
 let div=document.createElement("div");
 
 div.className="item";
-
 div.innerText=text;
 
 div.onclick=function(){
@@ -248,6 +372,7 @@ document
 selectedItem=div;
 
 div.classList.add("selected");
+
 };
 
 pool.appendChild(div);
@@ -260,17 +385,37 @@ document
 
 slot.onclick=function(){
 
-if(selectedItem){
+if(!selectedItem) return;
 
-slot.innerHTML="";
+const exist=slot.querySelector(".item");
+
+if(exist){
+
+const oldParent=
+selectedItem.parentElement;
 
 slot.appendChild(selectedItem);
 
-selectedItem.classList.remove("selected");
+if(oldParent.classList.contains("slot")){
 
-selectedItem=null;
+oldParent.appendChild(exist);
+
+}else{
+
+document
+.getElementById("pool")
+.appendChild(exist);
 
 }
+
+}else{
+
+slot.appendChild(selectedItem);
+
+}
+
+selectedItem.classList.remove("selected");
+selectedItem=null;
 
 };
 
@@ -279,6 +424,8 @@ selectedItem=null;
 }
 
 function checkAnswer(){
+
+clearInterval(timer);
 
 let correct=0;
 
@@ -295,13 +442,18 @@ item.innerText===currentCase.whys[index]){
 
 correct++;
 
-detail +=
-`✅ Why ${index+1}: ${currentCase.whys[index]}<br><br>`;
+detail+=`
+✅ Why ${index+1}<br>
+${currentCase.whys[index]}<br><br>
+`;
 
 }else{
 
-detail +=
-`❌ Why ${index+1}: ${currentCase.whys[index]}<br><br>`;
+detail+=`
+❌ Why ${index+1}<br>
+${currentCase.whys[index]}<br><br>
+`;
+
 }
 
 });
@@ -310,13 +462,26 @@ if(correct===5){
 
 score+=10;
 
-document.getElementById("score").innerText=score;
+document.getElementById("score")
+.innerText=score;
+
+confetti({
+particleCount:200,
+spread:120,
+origin:{y:0.6}
+});
 
 document.getElementById("result").innerHTML=
 `
-<p class="correct">
-🏆 ถูกต้องทั้งหมด (+10 คะแนน)
-</p>
+<div class="success">
+
+<h2 class="correct">
+🎉 PERFECT!
+</h2>
+
+<h1>
+🏆 +10 คะแนน
+</h1>
 
 <hr>
 
@@ -324,17 +489,19 @@ ${detail}
 
 <hr>
 
-<b>Root Cause:</b><br>
+<b>Root Cause</b><br>
 ${currentCase.rootCause}
+
+</div>
 `;
 
 }else{
 
 document.getElementById("result").innerHTML=
 `
-<p class="wrong">
+<h3 class="wrong">
 ✅ ถูก ${correct}/5
-</p>
+</h3>
 
 <hr>
 
@@ -342,7 +509,7 @@ ${detail}
 
 <hr>
 
-<b>Root Cause:</b><br>
+<b>Root Cause</b><br>
 ${currentCase.rootCause}
 `;
 }
