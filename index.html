@@ -14,14 +14,9 @@ body{
     padding:20px;
 }
 
-.wrap{
+.container{
     max-width:900px;
     margin:auto;
-}
-
-h1{
-    text-align:center;
-    color:#facc15;
 }
 
 .card{
@@ -31,10 +26,15 @@ h1{
     margin-top:15px;
 }
 
+h1{
+    text-align:center;
+    color:#facc15;
+}
+
 .btn{
     width:100%;
-    padding:12px;
     margin:8px 0;
+    padding:12px;
     border:none;
     border-radius:10px;
     background:#334155;
@@ -57,28 +57,30 @@ h1{
     font-weight:bold;
 }
 
-#next{
+#nextBtn{
     display:none;
     background:#16a34a;
 }
 
 .score{
+    color:#facc15;
     font-size:20px;
     font-weight:bold;
-    color:#facc15;
 }
 
-.rank{
-    font-size:24px;
+.result{
+    margin-top:10px;
+}
+
+.final{
     text-align:center;
-    margin-top:15px;
 }
 </style>
-</head>
 
+</head>
 <body>
 
-<div class="wrap">
+<div class="container">
 
 <h1>🎯 Quality Root Cause Challenge</h1>
 
@@ -94,119 +96,137 @@ h1{
 
 <script>
 
-const qs=[
+const questions = [
 
 {
-t:'ขนาดชิ้นงานเกินสเปค',
-q:'เครื่องจักรปกติ วัตถุดิบปกติ เครื่องมือวัดเกินกำหนด Calibration 30 วัน',
-o:['วัตถุดิบ','พนักงานวัดงาน','เครื่องมือวัด','สภาพอากาศ'],
-a:2,
-e:'✅ Root Cause : เครื่องมือวัดไม่ได้ Calibration'
+title:"ทองแดงเป็นสนิม",
+question:"ข้อมูล  พบสนิมก่อนเข้าเครื่อง Stamping พาเลทงานปกติ ไม่เสียหาย และพบว่าทองแดงหมดอายุเกิน 300 วัน",
+choices:[
+"ความชื้นในพื้นที่จัดเก็บสูง",
+"ทองแดงหมดอายุการจัดเก็บ",
+"Operator ตรวจสอบไม่ละเอียด",
+"Supplier ขนส่งผิดวิธี"
+],
+answer:1,
+explain:"Root Cause : ทองแดงหมดอายุการจัดเก็บ"
 },
 
 {
-t:'ลูกค้าได้รับสินค้าติด Label ผิดรุ่น',
-q:'ผลิต 2 รุ่นพร้อมกัน Label ถูกวางรวมกัน และ WI ไม่ระบุการแยกพื้นที่',
-o:['Supplier ส่งผิด','ไม่มีการควบคุมการแยก Label','Printer เสีย','ลูกค้าตรวจผิด'],
-a:1,
-e:'✅ Root Cause : ไม่มีการควบคุมการแยก Label'
+title:"รอยขีดข่วนบนผลิตภัณฑ์",
+question:"ข้อมูล  เครื่องจักรปกติ และเปลี่ยนใช้ Tray ของ Supplier ใหม่",
+choices:[
+"พนักงานทำงานผิด",
+"Tray ใหม่มีผิวหยาบ",
+"AOI ตรวจผิด",
+"เครื่องจักรเสีย"
+],
+answer:1,
+explain:"Root Cause : Tray ใหม่มีผิวหยาบ"
 },
 
 {
-t:'พบรอยขีดข่วนบนผลิตภัณฑ์',
-q:'เครื่องจักรปกติ และเปลี่ยนใช้ Tray ของ Supplier ใหม่',
-o:['พนักงานทำงานผิด','Tray ใหม่มีผิวหยาบ','AOI ตรวจผิด','เครื่องจักรเสีย'],
-a:1,
-e:'✅ Root Cause : Tray ใหม่มีผิวหยาบ'
+title:"ลูกค้าได้รับสินค้าติด Label ผิดรุ่น",
+question:"ข้อมูล  ผลิต 2 รุ่นพร้อมกัน Label ถูกวางรวมกัน และ WI ไม่ระบุการแยกพื้นที่",
+choices:[
+"Supplier ส่งผิด",
+"ไม่มีการควบคุมการแยก Label",
+"Printer เสีย",
+"ลูกค้าตรวจผิด"
+],
+answer:1,
+explain:"Root Cause : ไม่มีการควบคุมการแยก Label"
 },
 
 {
-t:'ทองแดงเป็นสนิม',
-q:'พบสนิมก่อนเข้าเครื่อง Stamping และพบว่าทองแดงหมดอายุเกิน 300 วัน',
-o:['ความชื้นในพื้นที่จัดเก็บสูง','ทองแดงหมดอายุการจัดเก็บ','Operator ตรวจสอบไม่ละเอียด','Supplier ขนส่งผิดวิธี'],
-a:1,
-e:'✅ Root Cause : ทองแดงหมดอายุการจัดเก็บ'
+title:"ขนาดชิ้นงานเกินสเปค",
+question:"ข้อมูล เครื่องจักรปกติ วัตถุดิบปกติ เครื่องมือวัดเกินกำหนด Calibration 30 วัน",
+choices:[
+"วัตถุดิบ",
+"เครื่องมือวัด",
+"พนักงานวัดงาน",
+"สภาพแวดล้อม"
+],
+answer:1,
+explain:"Root Cause : เครื่องมือวัดเกินกำหนด Calibration"
 },
 
 {
-t:'Dimension OOS',
-q:'Vernier เลยกำหนด Calibration 45 วัน',
-o:['Material','Measurement System','Operator','Environment'],
-a:1,
-e:'✅ Root Cause : Measurement System ไม่น่าเชื่อถือ'
+title:"Dent on Surface",
+question:"ข้อมูล  พบ Dent และพบว่ามีการซ้อน Tray สูงเกิน WI",
+choices:[
+"วัตถุดิบ คุณภาพต่ำ",
+"วาง Tray ซ้อนเกินมาตรฐาน",
+"เครื่องจักรผิดปกติ",
+"ลูกค้าขนส่งผิด"
+],
+answer:1,
+explain:"Root Cause : วาง Tray ซ้อนเกินมาตรฐาน"
+},
+
+{
+title:"พบเศษฝุ่นหล่นบนชิ้นงาน",
+question:"พบฝุ่นในผลิตภัณฑ์ และไม่ได้ทำ ทำความสะอาด ตามแผนที่กำหนด",
+choices:[
+"แอร์เสีย",
+"พนักงานตรวจไม่พบ",
+"ไม่ได้ทำความสะอาดตามกำหนด",
+"เครื่องจักรเสีย"
+],
+answer:2,
+explain:"Root Cause : ไม่ได้ทำความสะอาดตามกำหนด"
 }
 
 ];
 
+// สุ่ม Array
 function shuffle(array){
-    for(let i=array.length-1;i>0;i--){
-        const j=Math.floor(Math.random()*(i+1));
+    for(let i = array.length-1;i>0;i--){
+        let j = Math.floor(Math.random()*(i+1));
         [array[i],array[j]]=[array[j],array[i]];
     }
 }
 
-shuffle(qs);
+shuffle(questions);
 
-let current=0;
-let score=0;
+let current = 0;
+let score = 0;
 
-function showQuestion(){
+function loadQuestion(){
 
-    if(current>=qs.length){
-
-        let rank="📘 Junior Inspector";
-
-        if(score>=70){
-            rank="🏆 Root Cause Master";
-        }else if(score>=50){
-            rank="🕵️ Quality Detective";
-        }else if(score>=30){
-            rank="👨‍🏭 Quality Engineer";
-        }
-
-        document.getElementById("game").innerHTML=
-        `
-        <div class="card">
-            <h2>🎉 จบเกม</h2>
-            <h3>คะแนน ${score}/${qs.length*10}</h3>
-            <div class="rank">${rank}</div>
-            <br>
-            <button class="btn" onclick="location.reload()">
-                🔄 เล่นใหม่
-            </button>
-        </div>
-        `;
+    if(current >= questions.length){
+        finishGame();
         return;
     }
 
-    let q=qs[current];
+    let q = questions[current];
 
-    let options=q.o.map((text,index)=>({
+    let options = q.choices.map((text,index)=>({
         text:text,
-        correct:index===q.a
+        correct:index===q.answer
     }));
 
     shuffle(options);
 
-    let html=`
+    let html = `
     <div class="card">
-        <h2>${q.t}</h2>
-        <p>${q.q}</p>
+        <h2>ข้อ ${current+1}</h2>
+        <h3>${q.title}</h3>
+        <p>${q.question}</p>
     `;
 
-    options.forEach(opt=>{
-        html+=`
+    options.forEach(option=>{
+        html += `
         <button class="btn option"
-        onclick="answer(${opt.correct})">
-        ${opt.text}
+        onclick="selectAnswer(${option.correct})">
+        ${option.text}
         </button>
         `;
     });
 
-    html+=`
-    <div id="result"></div>
+    html += `
+    <div id="result" class="result"></div>
 
-    <button id="next"
+    <button id="nextBtn"
     class="btn"
     onclick="nextQuestion()">
     ➡️ ข้อถัดไป
@@ -215,42 +235,71 @@ function showQuestion(){
     </div>
     `;
 
-    document.getElementById("game").innerHTML=html;
+    document.getElementById("game").innerHTML = html;
 }
 
-function answer(correct){
+function selectAnswer(correct){
 
-    const r=document.getElementById("result");
+    let q = questions[current];
 
     if(correct){
 
-        score+=10;
+        score += 10;
 
-        r.innerHTML=
-        `<p class="correct">✅ ถูกต้อง</p>`;
+        document.getElementById("result").innerHTML =
+        `<p class="correct">✅ ถูกต้อง</p>
+         <p>${q.explain}</p>`;
+    }
+    else{
 
-    }else{
-
-        r.innerHTML=
-        `<p class="wrong">❌ ไม่ถูกต้อง</p>`;
-
+        document.getElementById("result").innerHTML =
+        `<p class="wrong">❌ ไม่ถูกต้อง</p>
+         <p>${q.explain}</p>`;
     }
 
-    document.getElementById("score").textContent=score;
+    document.getElementById("score").innerText = score;
 
     document.querySelectorAll(".option").forEach(btn=>{
-        btn.disabled=true;
+        btn.disabled = true;
     });
 
-    document.getElementById("next").style.display="block";
+    document.getElementById("nextBtn").style.display = "block";
 }
 
 function nextQuestion(){
     current++;
-    showQuestion();
+    loadQuestion();
 }
 
-showQuestion();
+function finishGame(){
+
+    let rank = "Junior Inspector";
+
+    if(score >= 60){
+        rank = "🏆 Root Cause Master";
+    }
+    else if(score >= 40){
+        rank = "🕵️ Quality Detective";
+    }
+    else if(score >= 20){
+        rank = "👨‍🏭 Quality Engineer";
+    }
+
+    document.getElementById("game").innerHTML = `
+    <div class="card final">
+        <h2>🎉 จบเกม</h2>
+        <h3>คะแนน ${score}/${questions.length*10}</h3>
+        <h2>${rank}</h2>
+
+        <button class="btn"
+        onclick="location.reload()">
+        🔄 เล่นใหม่
+        </button>
+    </div>
+    `;
+}
+
+loadQuestion();
 
 </script>
 
