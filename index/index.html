@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>5 Why Root Cause Challenge</title>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+<style>
+
+body{
+    font-family:Arial,sans-serif;
+    background:#0f172a;
+    color:white;
+    margin:0;
+    padding:20px;
+}
+
+.container{
+    max-width:900px;
+    margin:auto;
+}
+
+.card{
+    background:#1e293b;
+    padding:20px;
+    border-radius:15px;
+}
+
+h1{
+    text-align:center;
+    color:#facc15;
+}
+
+.score{
+    font-size:18px;
+    color:#facc15;
+    font-weight:bold;
+    margin-bottom:10px;
+}
+
+.timer{
+    font-size:24px;
+    color:#4ade80;
+    font-weight:bold;
+}
+
+.slot{
+    min-height:60px;
+    background:#334155;
+    border:2px dashed #64748b;
+    border-radius:10px;
+    padding:10px;
+    margin:10px 0;
+}
+
+.item{
+    background:#2563eb;
+    padding:12px;
+    border-radius:10px;
+    margin:8px 0;
+    cursor:pointer;
+}
+
+.selected{
+    outline:3px solid yellow;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:10px;
+    margin-top:10px;
+    cursor:pointer;
+    font-size:16px;
+}
+
+.check{
+    background:#16a34a;
+    color:white;
+}
+
+.next{
+    background:#2563eb;
+    color:white;
+}
+
+.correct{
+    color:#4ade80;
+    font-weight:bold;
+}
+
+.wrong{
+    color:#f87171;
+    font-weight:bold;
+}
+
+.success{
+    animation:pop .8s ease;
+}
+
+@keyframes pop{
+
+0%{
+transform:scale(.5);
+opacity:0;
+}
+
+50%{
+transform:scale(1.2);
+}
+
+100%{
+transform:scale(1);
+opacity:1;
+}
+
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🎯 5 Why Root Cause Challenge</h1>
+
+<div class="card">
+
+<div class="score">
+🏆 คะแนนรวม :
+<span id="score">0</span>
+</div>
+
+<div class="timer">
+⏱️ <span id="timer">30</span> วินาที
+</div>
+
+<hr>
+
+<h2 id="caseTitle"></h2>
+
+<div id="slots"></div>
+
+<h3>เลือก Why แล้วแตะช่องวาง</h3>
+
+<div id="pool"></div>
+
+<button class="check" onclick="checkAnswer()">
+✅ ตรวจคำตอบ
+</button>
+
+<button class="next" onclick="newCase()">
+🔄 สุ่มโจทย์ใหม่
+</button>
+
+<div id="result"></div>
+
+</div>
+
+</div>
+
+<script>
+
+const cases=[
+
+{
+title:"Peeling Defect",
+rootCause:"ไม่มีการ Verify อุณหภูมิหลังเปลี่ยน Heater",
+whys:[
+"เกิด Peeling บนชิ้นงาน",
+"Adhesive ยึดเกาะไม่สมบูรณ์",
+"ความร้อนไม่เพียงพอในการ Cure",
+"อุณหภูมิ Oven จริงต่ำกว่าสเปค",
+"ไม่มีการ Verify อุณหภูมิหลังเปลี่ยน Heater"
+]
+},
+
+{
+title:"Copper Rust",
+rootCause:"ทองแดงหมดอายุการจัดเก็บ",
+whys:[
+"ทองแดงเป็นสนิม",
+"เกิด Oxidation บนผิวทองแดง",
+"เก็บเกิน Shelf Life",
+"ไม่มีการควบคุม FIFO",
+"ไม่มีระบบแจ้งเตือนวัตถุดิบหมดอายุ"
+]
+},
+
+{
+title:"Wrong Label",
+rootCause:"ไม่มีการควบคุมการแยก Label",
+whys:[
+"ลูกค้าได้รับสินค้าติด Label ผิดรุ่น",
+"หยิบ Label ผิด",
+"Label สองรุ่นถูกวางรวมกัน",
+"ไม่มีการแยกพื้นที่จัดเก็บ",
+"WI ไม่กำหนดวิธีควบคุม Label"
+]
+},
+
+{
+title:"Dimension OOS",
+rootCause:"เครื่องมือวัดไม่ได้ Calibration",
+whys:[
+"ขนาดชิ้นงานเกินสเปค",
+"ผลการวัดไม่ถูกต้อง",
+"Vernier คลาดเคลื่อน",
+"เลยกำหนด Calibration",
+"ไม่มีระบบติดตาม Calibration"
+]
+},
+
+{
+title:"Dent on Surface",
+rootCause:"ซ้อน Tray เกินมาตรฐาน",
+whys:[
+"เกิด Dent บนผิวชิ้นงาน",
+"ชิ้นงานถูกกดทับ",
+"ซ้อน Tray สูงเกินกำหนด",
+"ไม่ปฏิบัติตาม WI",
+"ไม่มีการ Audit"
+]
+}
+
+];
+
+let score=0;
+let selectedItem=null;
+let currentCase=null;
+let timer;
+let timeLeft=30;
+
+function shuffle(arr){
+
+for(let i=arr.length-1;i>0;i--){
+
+const j=Math.floor(Math.random()*(i+1));
+
+[arr[i],arr[j]]=[arr[j],arr[i]];
+}
+
+}
+
+function startTimer(){
+
+clearInterval(timer);
+
+timeLeft=30;
+
+document.getElementById("timer").innerText=timeLeft;
+
+timer=setInterval(()=>{
+
+timeLeft--;
+
+document.getElementById("timer").innerText=timeLeft;
+
+if(timeLeft<=0){
+
+clearInterval(timer);
+
+document.getElementById("result").innerHTML=
+`
+<p class="wrong">
+⏰ หมดเวลา
+</p>
+
+<hr>
+
+<b>Root Cause:</b><br>
+${currentCase.rootCause}
+`;
+
+}
+
+},1000);
+
+}
+
+function newCase(){
+
+document.getElementById("result").innerHTML="";
+
+currentCase=
+cases[Math.floor(Math.random()*cases.length)];
+
+document.getElementById("caseTitle").innerHTML=
+"🏭 "+currentCase.title;
+
+startTimer();
+
+const slots=document.getElementById("slots");
+const pool=document.getElementById("pool");
+
+slots.innerHTML="";
+pool.innerHTML="";
+
+for(let i=0;i<5;i++){
+
+slots.innerHTML+=
+`
+<div>
+<b>Why ${i+1}</b>
+<div class="slot"></div>
+</div>
+`;
+
+}
+
+let shuffled=[...currentCase.whys];
+
+shuffle(shuffled);
+
+shuffled.forEach(text=>{
+
+let div=document.createElement("div");
+
+div.className="item";
+
+div.innerText=text;
+
+div.onclick=function(){
+
+document
+.querySelectorAll(".item")
+.forEach(x=>x.classList.remove("selected"));
+
+selectedItem=div;
+
+div.classList.add("selected");
+
+};
+
+pool.appendChild(div);
+
+});
+
+document
+.querySelectorAll(".slot")
+.forEach(slot=>{
+
+slot.onclick=function(){
+
+if(selectedItem){
+
+slot.innerHTML="";
+
+slot.appendChild(selectedItem);
+
+selectedItem.classList.remove("selected");
+
+selectedItem=null;
+
+}
+
+};
+
+});
+
+}
+
+function checkAnswer(){
+
+clearInterval(timer);
+
+let correct=0;
+
+document
+.querySelectorAll(".slot")
+.forEach((slot,index)=>{
+
+let item=slot.querySelector(".item");
+
+if(item &&
+item.innerText===currentCase.whys[index]){
+
+correct++;
+
+}
+
+});
+
+if(correct===5){
+
+score+=10;
+
+document.getElementById("score").innerText=score;
+
+confetti({
+particleCount:200,
+spread:120,
+origin:{y:0.6}
+});
+
+document.getElementById("result").innerHTML=
+`
+<div class="success">
+
+<h2 class="correct">
+🎉 PERFECT!
+</h2>
+
+<h1>
+🏆 +10 คะแนน
+</h1>
+
+<hr>
+
+<b>Root Cause:</b><br>
+${currentCase.rootCause}
+
+</div>
+`;
+
+}
+else{
+
+document.getElementById("result").innerHTML=
+`
+<p class="wrong">
+✅ ถูก ${correct}/5
+</p>
+
+<hr>
+
+<b>Root Cause:</b><br>
+${currentCase.rootCause}
+`;
+}
+
+}
+
+newCase();
+
+</script>
+
+</body>
+</html>
