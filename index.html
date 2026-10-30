@@ -135,7 +135,7 @@ opacity:1;
 </div>
 
 <div class="timer">
-⏱️ <span id="timer">120</span> วินาที
+⏱️ <span id="timer">60</span> วินาที
 </div>
 
 <hr>
@@ -236,7 +236,7 @@ let totalPlayed=0;
 let selectedItem=null;
 let currentCase=null;
 let timer;
-let timeLeft=120;
+let timeLeft=60;
 let currentIndex=-1;
 
 function shuffle(arr){
@@ -250,7 +250,7 @@ function startTimer(){
 
 clearInterval(timer);
 
-timeLeft=120;
+timeLeft=60;
 
 const timerEl=document.getElementById("timer");
 
@@ -438,7 +438,7 @@ if(correct===5){
 
 confetti({
 particleCount:200,
-spread:120,
+spread:60,
 origin:{y:0.6}
 });
 
