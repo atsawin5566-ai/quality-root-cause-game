@@ -46,7 +46,7 @@ h1{
 }
 
 .slot{
-    min-height:40px;
+    min-height:30px;
     background:#334155;
     border:2px dashed #64748b;
     border-radius:8px;
@@ -135,7 +135,7 @@ opacity:1;
 </div>
 
 <div class="timer">
-⏱️ <span id="timer">60</span> วินาที
+⏱️ <span id="timer">90</span> วินาที
 </div>
 
 <hr>
@@ -236,7 +236,7 @@ let totalPlayed=0;
 let selectedItem=null;
 let currentCase=null;
 let timer;
-let timeLeft=60;
+let timeLeft=90;
 let currentIndex=-1;
 
 function shuffle(arr){
@@ -250,7 +250,7 @@ function startTimer(){
 
 clearInterval(timer);
 
-timeLeft=60;
+timeLeft=90;
 
 const timerEl=document.getElementById("timer");
 
@@ -265,7 +265,7 @@ timerEl.innerText=timeLeft;
 if(timeLeft<=30){
 timerEl.style.color="#ef4444";
 }
-else if(timeLeft<=60){
+else if(timeLeft<=90){
 timerEl.style.color="#facc15";
 }
 else{
@@ -438,7 +438,7 @@ if(correct===5){
 
 confetti({
 particleCount:200,
-spread:60,
+spread:90,
 origin:{y:0.6}
 });
 
